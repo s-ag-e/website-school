@@ -9,17 +9,15 @@ export default function Login() {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [nextPage, setNextPage] = useState("");
-
   useEffect(() => {
     const page = new URLSearchParams(window.location.search).get("next");
     if (page === "/dashboard" || page === "/shared") setNextPage(page);
   }, []);
-
   async function login(event) {
     event.preventDefault();
     setMessage("");
     if (!supabase) {
-      setMessage("no db in .env.local");
+      setMessage("cant connect to database.");
       return;
     }
     const form = new FormData(event.target);
@@ -30,7 +28,13 @@ export default function Login() {
         password: String(form.get("password")),
       });
       if (error) {
-        setMessage(error.message);
+        setMessage(
+          error.code === "email_not_confirmed"
+            ? "confirm your email first."
+            : error.code === "invalid_credentials"
+              ? "wrong email or password."
+              : "cant log in.",
+        );
         return;
       }
       let destination = nextPage || "/dashboard";
@@ -45,7 +49,7 @@ export default function Login() {
       } catch {}
       router.push(destination);
     } catch {
-      setMessage("can not connect.");
+      setMessage("cant connect.");
     } finally {
       setBusy(false);
     }
@@ -53,11 +57,11 @@ export default function Login() {
   return (
     <main
       id="main-content"
-      className="login-page mx-auto mt-[55px] mb-[70px] w-[calc(100%_-_40px)] max-w-[420px] [&_small]:text-[13px] [&_small]:leading-normal [&_small]:text-[#666] max-[650px]:mt-[35px]"
+      className="mx-auto mt-[55px] mb-[70px] w-[calc(100%_-_40px)] max-w-[420px] max-[650px]:mt-[35px]"
     >
-      <h1 className=" mb-4 text-[32px] font-bold">Login</h1>
-      <form onSubmit={login} className=" mb-[22px] flex flex-col gap-[10px]">
-        <label htmlFor="email" className=" mt-2">
+      <h1 className="mb-4 text-[32px] font-bold">Login</h1>
+      <form onSubmit={login} className="mb-[22px] flex flex-col gap-[10px]">
+        <label htmlFor="email" className="mt-2">
           Email
         </label>
         <input
@@ -69,7 +73,7 @@ export default function Login() {
           placeholder="Email address"
           className="min-h-[45px] w-full rounded-[3px] border border-[#aaa] bg-white p-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#278cc1]"
         />
-        <label htmlFor="password" className=" mt-2">
+        <label htmlFor="password" className="mt-2">
           Password
         </label>
         <input
@@ -85,18 +89,18 @@ export default function Login() {
           disabled={busy}
           className="mt-[13px] min-w-[110px] self-start rounded bg-[#444] px-[22px] py-3 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#278cc1] cursor-pointer disabled:cursor-default disabled:opacity-50"
         >
-          {busy ? "Please wait…" : "Login"}
+          {busy ? "logging in..." : "Login"}
         </button>
         {message && (
           <p
-            className="login-message mt-[6px] bg-[#eee] p-3 text-sm leading-normal"
+            className="mt-[6px] bg-[#eee] p-3 text-sm leading-normal"
             role="status"
           >
             {message}
           </p>
         )}
       </form>
-      <p className=" mb-[25px] text-base leading-normal">
+      <p className="mb-[25px] text-base leading-normal">
         No account?{" "}
         <Link
           href={

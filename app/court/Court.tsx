@@ -1,6 +1,6 @@
 "use client";
 
-export type DrawingObject = {
+type DrawingObject = {
   id: string;
   type: string;
   number?: number;
@@ -17,42 +17,18 @@ export type SavedPlay = {
   id: string;
   title: string;
   board: Board;
-  owner_id?: string;
   is_public?: boolean;
   username?: string;
   upvotes?: number;
-  updated_at?: string;
 };
-export function CourtLines({ full = false }) {
+export function CourtBackground({ full = false }) {
   return (
-    <g fill="none" stroke="currentColor" strokeWidth="2.5">
-      <rect x="28" y="24" width="744" height="512" rx="3" />
-      {full ? (
-        <>
-          <path d="M400 24V536" />
-          <circle cx="400" cy="280" r="65" />
-          {[false, true].map((flipped) => (
-            <g
-              key={String(flipped)}
-              transform={flipped ? "translate(800 560) rotate(180)" : undefined}
-            >
-              <path d="M28 185H180V375H28M180 215a65 65 0 0 1 0 130M28 64H105a235 235 0 0 1 0 432H28" />
-              <path d="M69 245V315M69 280H89" />
-              <circle cx="101" cy="280" r="12" />
-            </g>
-          ))}
-        </>
-      ) : (
-        <>
-          <path d="M272 24V224H528V24M272 224a128 128 0 0 0 256 0" />
-          <path strokeDasharray="7 8" d="M272 224a128 128 0 0 1 256 0" />
-          <path d="M78 24V128a330 330 0 0 0 644 0V24" />
-          <path d="M352 66H448M400 66V77" />
-          <circle cx="400" cy="89" r="12" />
-          <path d="M338 24a62 62 0 0 0 124 0M320 536a80 80 0 0 1 160 0" />
-        </>
-      )}
-    </g>
+    <image
+      href={full ? "/court-full.png" : "/court-half.png"}
+      width="800"
+      height="560"
+      pointerEvents="none"
+    />
   );
 }
 export function Marks({
@@ -143,7 +119,7 @@ export function Marks({
             d="M-13 -7L0 0L-13 7"
             transform={`translate(${last}) rotate(${angle})`}
           />
-        )}{" "}
+        )}
         {object.type === "screen" && (
           <path
             d="M0 -12V12"
@@ -159,9 +135,9 @@ export function Mini({ board }: { board: Board }) {
     <svg
       viewBox="0 0 800 560"
       aria-hidden="true"
-      className="mini-court block w-full bg-[#eee] text-[#b5b5b5]"
+      className="block w-full bg-[#eee] text-[#b5b5b5]"
     >
-      <CourtLines full={board.court === "full"} />
+      <CourtBackground full={board.court === "full"} />
       <Marks objects={board.objects} />
     </svg>
   );
@@ -219,81 +195,4 @@ export function validBoard(board: Board) {
     }
   }
   return true;
-}
-export function example(): Board {
-  return {
-    court: "half",
-    notes:
-      "1 brings the ball up. 5 sets a high screen, then rolls to the basket. 2 and 3 keep the floor spaced.",
-    objects: [
-      {
-        id: "p1",
-        type: "player",
-        number: 1,
-        x: 400,
-        y: 430,
-      },
-      {
-        id: "p2",
-        type: "player",
-        number: 2,
-        x: 125,
-        y: 320,
-      },
-      {
-        id: "p3",
-        type: "player",
-        number: 3,
-        x: 675,
-        y: 320,
-      },
-      {
-        id: "p4",
-        type: "player",
-        number: 4,
-        x: 165,
-        y: 95,
-      },
-      {
-        id: "p5",
-        type: "player",
-        number: 5,
-        x: 445,
-        y: 275,
-      },
-      {
-        id: "b",
-        type: "ball",
-        number: 0,
-        x: 434,
-        y: 457,
-      },
-      {
-        id: "a1",
-        type: "move",
-        points: [
-          [400, 408],
-          [320, 305],
-          [350, 205],
-        ],
-      },
-      {
-        id: "a2",
-        type: "move",
-        points: [
-          [445, 250],
-          [470, 185],
-          [419, 108],
-        ],
-      },
-      {
-        id: "s",
-        type: "screen",
-        points: [
-          [425, 300],
-          [365, 300],
-        ],
-      },
-    ],
-  };
 }

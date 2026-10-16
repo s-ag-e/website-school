@@ -5,12 +5,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { Pencil, Save, Share2 } from "lucide-react";
-
 export default function Home() {
   const router = useRouter();
   const [opening, setOpening] = useState(false);
   const [message, setMessage] = useState("");
-
   async function openPage(
     event: React.MouseEvent<HTMLAnchorElement>,
     page: string,
@@ -32,12 +30,11 @@ export default function Home() {
         data.session ? page : "/login?next=" + encodeURIComponent(page),
       );
     } catch {
-      setMessage("Could not check your login. Please try again.");
+      setMessage("cant check login.");
     } finally {
       setOpening(false);
     }
   }
-
   return (
     <main id="main-content" className="bg-white text-[#444]">
       <section className="px-6 pt-16 pb-20 text-center max-[650px]:pt-10 max-[650px]:pb-14">

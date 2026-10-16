@@ -9,17 +9,15 @@ export default function Register() {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [nextPage, setNextPage] = useState("");
-
   useEffect(() => {
     const page = new URLSearchParams(window.location.search).get("next");
     if (page === "/dashboard" || page === "/shared") setNextPage(page);
   }, []);
-
   async function register(event) {
     event.preventDefault();
     setMessage("");
     if (!supabase) {
-      setMessage("no db in .env.local");
+      setMessage("cant connect to database.");
       return;
     }
     const formElement = event.target;
@@ -29,7 +27,7 @@ export default function Register() {
       .toLowerCase();
     if (!/^[a-z0-9_]{3,24}$/.test(username)) {
       setMessage(
-        "Use 3 to 24 letters, numbers or underscores for your username.",
+        "username needs 3-24 letters, numbers or underscores.",
       );
       return;
     }
@@ -41,11 +39,11 @@ export default function Register() {
         .eq("username", username)
         .maybeSingle();
       if (check.error) {
-        setMessage("no db.");
+        setMessage("cant check username.");
         return;
       }
       if (check.data) {
-        setMessage("Username already exists.");
+        setMessage("username taken.");
         return;
       }
       const { data, error } = await supabase.auth.signUp({
@@ -58,18 +56,24 @@ export default function Register() {
         },
       });
       if (error) {
-        setMessage(error.message);
+        setMessage(
+          error.code === "user_already_exists"
+            ? "email already in use."
+            : error.code === "weak_password"
+              ? "try a stronger password."
+              : error.code === "over_email_send_rate_limit"
+                ? "wait a bit before trying again."
+                : "cant create account.",
+        );
         return;
       }
       if (data.session) router.push(nextPage || "/dashboard");
       else {
-        setMessage(
-          "Check your email for a confirmation link.",
-        );
+        setMessage("check your email to confirm your account.");
         formElement.reset();
       }
     } catch {
-      setMessage("db cant connect.");
+      setMessage("cant connect.");
     } finally {
       setBusy(false);
     }
@@ -77,14 +81,14 @@ export default function Register() {
   return (
     <main
       id="main-content"
-      className="register-page mx-auto mt-[55px] mb-[70px] w-[calc(100%_-_40px)] max-w-[420px] max-[650px]:mt-[35px]"
+      className="mx-auto mt-[55px] mb-[70px] w-[calc(100%_-_40px)] max-w-[420px] max-[650px]:mt-[35px]"
     >
-      <h1 className=" mb-4 text-[32px] font-bold">Register</h1>
-      <p className=" mb-[25px] text-base leading-normal">
+      <h1 className="mb-4 text-[32px] font-bold">Register</h1>
+      <p className="mb-[25px] text-base leading-normal">
         Create an account to save your plays.
       </p>
-      <form onSubmit={register} className=" mb-[22px] flex flex-col gap-[10px]">
-        <label htmlFor="username" className=" mt-2">
+      <form onSubmit={register} className="mb-[22px] flex flex-col gap-[10px]">
+        <label htmlFor="username" className="mt-2">
           Username
         </label>
         <input
@@ -99,10 +103,10 @@ export default function Register() {
           placeholder="Choose a username"
           className="min-h-[45px] w-full rounded-[3px] border border-[#aaa] bg-white p-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#278cc1]"
         />
-        <small className=" text-[13px] leading-normal text-[#666]">
+        <small className="text-[13px] leading-normal text-[#666]">
           3–24 letters, numbers or underscores.
         </small>
-        <label htmlFor="email" className=" mt-2">
+        <label htmlFor="email" className="mt-2">
           Email
         </label>
         <input
@@ -114,7 +118,7 @@ export default function Register() {
           placeholder="Email address"
           className="min-h-[45px] w-full rounded-[3px] border border-[#aaa] bg-white p-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#278cc1]"
         />
-        <label htmlFor="password" className=" mt-2">
+        <label htmlFor="password" className="mt-2">
           Password
         </label>
         <input
@@ -131,18 +135,18 @@ export default function Register() {
           disabled={busy}
           className="mt-[13px] min-w-[110px] self-start rounded bg-[#444] px-[22px] py-3 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#278cc1] cursor-pointer disabled:cursor-default disabled:opacity-50"
         >
-          {busy ? "Please wait…" : "Register"}
+          {busy ? "creating account..." : "Register"}
         </button>
         {message && (
           <p
-            className="register-message mt-[6px] bg-[#eee] p-3 text-sm leading-normal"
+            className="mt-[6px] bg-[#eee] p-3 text-sm leading-normal"
             role="status"
           >
             {message}
           </p>
         )}
       </form>
-      <p className=" mb-[25px] text-base leading-normal">
+      <p className="mb-[25px] text-base leading-normal">
         Have an account?{" "}
         <Link
           href={
